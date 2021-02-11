@@ -3,15 +3,17 @@ FROM ubuntu:focal
 #Locale
 ENV LANG C.UTF-8
 
-#
-# Android SDK
-# https://developer.android.com/studio#downloads
-ENV ANDROID_SDK_TOOLS_VERSION 6514223
-ENV ANDROID_PLATFORM_VERSION 29
-ENV ANDROID_BUILD_TOOLS_VERSION 29.0.3
-ENV ANDROID_HOME=/opt/android-sdk-linux
-ENV ANDROID_SDK_ROOT="$ANDROID_HOME"
-ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/tools/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator
+ENV DEBIAN_FRONTEND=noninteractive 
+
+# #
+# # Android SDK
+# # https://developer.android.com/studio#downloads
+# ENV ANDROID_SDK_TOOLS_VERSION 6514223
+# ENV ANDROID_PLATFORM_VERSION 29
+# ENV ANDROID_BUILD_TOOLS_VERSION 29.0.3
+# ENV ANDROID_HOME=/opt/android-sdk-linux
+# ENV ANDROID_SDK_ROOT="$ANDROID_HOME"
+# ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/tools/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator
 
 #
 # Flutter SDK
@@ -37,8 +39,20 @@ ARG USER_GID=$USER_UID
 RUN  apt-get update \
 	&& apt-get install -y sudo \
 	&& apt-get install -y openjdk-8-jdk-headless --no-install-recommends \
-	&& apt-get install -y wget curl git xz-utils zip unzip --no-install-recommends \
+	&& apt-get install -y python3 python3-distutils python3-apt --no-install-recommends \
+	&& apt-get install -y wget curl git xz-utils zip unzip gnupg-agent gnupg --no-install-recommends \
+	# && apt-get install -y apt-transport-https ca-certificates software-properties-common --no-install-recommends \
+	# && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable" \
+	# && apt-get update \
+	&& apt-get install -y docker.io --no-install-recommends \
+	# && systemctl start docker \
+	# && systemctl enable docker \
+	&& curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
+	&& curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - \
+	&& python3 get-pip.py \
+	&& pip install docker-compose \
 	# Clean Up
+	&& rm get-pip.py \
 	&& apt-get autoremove -y \
 	&& apt-get clean -y \
 	&& rm -rf /var/lib/apt/lists/* \
@@ -49,28 +63,25 @@ RUN  apt-get update \
 	&& echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
 	&& chmod 0440 /etc/sudoers.d/$USERNAME
 
-#
-# Android SDK	
-RUN cd /opt \
-	&& curl -C - --output android-sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip \
-	&& mkdir -p ${ANDROID_HOME}/cmdline-tools/ \
-	&& unzip -q android-sdk-tools.zip -d ${ANDROID_HOME}/cmdline-tools/ \
-	&& rm android-sdk-tools.zip \
-	&& yes | sdkmanager --licenses \
-	&& touch $HOME/.android/repositories.cfg \
-	&& sdkmanager platform-tools \
-	&& sdkmanager emulator \
-	&& sdkmanager "platforms;android-$ANDROID_PLATFORM_VERSION" "build-tools;$ANDROID_BUILD_TOOLS_VERSION"
+# # Android SDK	
+# RUN cd /opt \
+# 	&& curl -C - --output android-sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip \
+# 	&& mkdir -p ${ANDROID_HOME}/cmdline-tools/ \
+# 	&& unzip -q android-sdk-tools.zip -d ${ANDROID_HOME}/cmdline-tools/ \
+# 	&& rm android-sdk-tools.zip \
+# 	&& yes | sdkmanager --licenses \
+# 	&& touch $HOME/.android/repositories.cfg \
+# 	&& sdkmanager platform-tools \
+# 	&& sdkmanager emulator \
+# 	&& sdkmanager "platforms;android-$ANDROID_PLATFORM_VERSION" "build-tools;$ANDROID_BUILD_TOOLS_VERSION"
 
-#
 # Flutter SDK
 RUN cd /opt \
 	&& curl -C - --output flutter.tar.xz https://storage.googleapis.com/flutter_infra/releases/${FLUTTER_CHANNEL}/linux/flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz \
 	&& tar xf flutter.tar.xz -C . \
 	&& rm flutter.tar.xz \
-	&& yes | flutter doctor --android-licenses \
+	# && yes | flutter doctor --android-licenses \
 	&& flutter config --no-analytics \
 	&& if [ "$FLUTTER_WEB" = "enable" ]; then flutter config --enable-web; fi \
-	&& flutter update-packages
-
-RUN flutter upgrade
+	&& flutter update-packages \
+	&& flutter upgrade
