@@ -19,7 +19,7 @@ git clone https://github.com/Derrick56007/flutter_devcontainer.git
 Usage
 ------------
 1. Start VS Code
-2. Run the Remote-Containers: Open Folder in Container and choose rust_devcontainer
+2. Run the Remote-Containers: Open Folder in Container and choose flutter_devcontainer
 
 Example
 ------------
