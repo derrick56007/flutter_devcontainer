@@ -11,7 +11,7 @@ ARG USER_GID=$USER_UID
 
 # Install needed packages, setup user and clean up.
 RUN  apt-get update \
-	&& apt-get install -y sudo \
+	# && apt-get install -y sudo \
 	# && apt-get install -y openjdk-8-jdk-headless --no-install-recommends \
 	# && apt-get install -y python3 python3-distutils python3-apt --no-install-recommends \
 	&& apt-get install -y ca-certificates curl git unzip xz-utils zip libglu1-mesa --no-install-recommends \
